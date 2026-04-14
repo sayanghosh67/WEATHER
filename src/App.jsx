@@ -12,13 +12,16 @@ const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast'
 
 const weatherThemes = {
   clear: { accent: '#ffda47', glow: 'rgba(255, 218, 71, 0.45)', sceneBg: '#140f02' },
-  clouds: { accent: '#a8c0ff', glow: 'rgba(168, 192, 255, 0.45)', sceneBg: '#0b101a' },
-  rain: { accent: '#52b8ff', glow: 'rgba(82, 184, 255, 0.42)', sceneBg: '#060d16' },
-  drizzle: { accent: '#66b8ff', glow: 'rgba(102, 184, 255, 0.42)', sceneBg: '#08101c' },
-  thunderstorm: { accent: '#bd7eff', glow: 'rgba(189, 126, 255, 0.42)', sceneBg: '#120818' },
+  clouds: '#38bdf8', // Force Sky Blue for cloud conditions
+  rain: { accent: '#38bdf8', glow: 'rgba(56, 189, 248, 0.42)', sceneBg: '#060d16' },
+  drizzle: { accent: '#38bdf8', glow: 'rgba(56, 189, 248, 0.42)', sceneBg: '#08101c' },
+  thunderstorm: { accent: '#38bdf8', glow: 'rgba(56, 189, 248, 0.42)', sceneBg: '#120818' },
   snow: { accent: '#ffffff', glow: 'rgba(255, 255, 255, 0.5)', sceneBg: '#0f1620' },
-  default: { accent: '#00dcff', glow: 'rgba(0, 220, 255, 0.42)', sceneBg: '#05080f' },
+  default: { accent: '#38bdf8', glow: 'rgba(56, 189, 248, 0.5)', sceneBg: '#05080f' },
 }
+
+// Ensure clouds also has the structure
+weatherThemes.clouds = { accent: '#38bdf8', glow: 'rgba(56, 189, 248, 0.45)', sceneBg: '#0b101a' }
 
 const iconMap = {
   clear: '☀️',
@@ -76,20 +79,23 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
+      staggerChildren: 0.2,
+      delayChildren: 0.5,
+      ease: [0.32, 0.72, 0, 1]
     },
   },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.92, rotateX: 10 },
+  hidden: { opacity: 0, y: 40, filter: 'blur(10px)' },
   visible: { 
     opacity: 1, 
     y: 0, 
-    scale: 1, 
-    rotateX: 0,
-    transition: { type: 'spring', stiffness: 120, damping: 20 }
+    filter: 'blur(0px)',
+    transition: { 
+      duration: 1.2,
+      ease: [0.32, 0.72, 0, 1]
+    }
   },
 }
 
@@ -285,54 +291,48 @@ function App() {
         </Suspense>
       </div>
 
-      {/* Main Content Layer with Parallax */}
+      {/* Main Content Layer */}
       <motion.div 
-        className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-12"
+        className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-12 lg:py-24"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{
-          rotateX: mouse.y * -2,
-          rotateY: mouse.x * 2,
-          transformStyle: 'preserve-3d'
-        }}
       >
         <motion.section
           variants={itemVariants}
-          whileHover={{ z: 20, scale: 1.01 }}
-          className="glass-panel relative z-10 overflow-visible p-6 sm:p-10"
+          className="glass-panel group relative z-10 p-10 sm:p-16"
         >
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative z-10">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
-                Neon Climate Console
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.5em] text-white/40">
+                Atmospheric Monitor
               </p>
-              <h1 className="heading-font text-6xl leading-[0.9] sm:text-8xl md:text-9xl drop-shadow-2xl">
+              <h1 className="text-7xl font-light tracking-tighter sm:text-9xl md:text-[10rem]">
                 {weather ? `${Math.round(weather.main.temp)}°` : '--°'}
               </h1>
-              <p className="mt-4 text-xl font-medium tracking-wide text-white/90 sm:text-3xl">
-                {weather?.name ?? 'Detecting location'} {weather?.sys?.country ?? ''}
-              </p>
-              <p className="mt-1 text-sm font-medium uppercase tracking-[0.3em] text-[var(--accent)]">
-                {weather?.weather?.[0]?.description ?? 'Awaiting atmosphere data'}
-              </p>
+              <div className="mt-8">
+                <p className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">
+                  {weather?.name ?? 'Locating...'} {weather?.sys?.country ?? ''}
+                </p>
+                <p className="mt-2 text-sm font-medium uppercase tracking-[0.35em] text-[var(--accent)] opacity-80">
+                  {weather?.weather?.[0]?.description ?? 'Awaiting data'}
+                </p>
+              </div>
             </div>
 
             <motion.div
-              className="weather-emoji relative z-20 text-7xl sm:text-8xl md:text-9xl"
-              animate={{ y: [0, -15, 0], rotateZ: [0, 5, -5, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ transformStyle: 'preserve-3d' }}
+              className="weather-emoji relative z-20 text-[6rem] sm:text-[10rem] md:text-[12rem] opacity-90"
+              animate={{ y: [0, -20, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
             >
               {weatherIcon}
             </motion.div>
           </div>
         </motion.section>
 
-        <motion.section variants={itemVariants} className="relative z-20 flex flex-col gap-4 lg:flex-row">
+        <motion.section variants={itemVariants} className="relative z-20 flex flex-col gap-5 lg:flex-row">
           <form
-            className="glass-panel flex flex-1 items-center gap-3 p-3 transition-transform"
-            whileHover={{ z: 15 }}
+            className="glass-panel flex flex-1 items-center gap-4 p-4"
             onSubmit={(event) => {
               event.preventDefault()
               if (query.trim()) loadWeather({ city: query.trim() })
@@ -341,80 +341,56 @@ function App() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Enter city name..."
-              className="w-full rounded-xl border border-transparent bg-white/5 px-5 py-4 text-sm font-medium tracking-wide outline-none transition duration-300 placeholder:text-white/40 focus:bg-white/10"
+              placeholder="Search city..."
+              className="w-full bg-transparent px-4 py-2 text-lg font-light tracking-wide outline-none placeholder:text-white/20"
             />
             <motion.button
-              whileHover={{ scale: 1.05, boxShadow: '0 0 20px var(--accent-glow)' }}
-              whileTap={{ scale: 0.95 }}
-              className="relative overflow-hidden rounded-xl border border-white/20 bg-[var(--accent)] px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-black shadow-lg"
+              whileHover={{ opacity: 0.8 }}
+              whileTap={{ scale: 0.98 }}
+              className="rounded-full bg-white px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black"
               type="submit"
             >
-              Search
+              Discover
             </motion.button>
           </form>
 
           <motion.button
             variants={itemVariants}
-            whileHover={{ z: 15, scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
+            whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
             whileTap={{ scale: 0.98 }}
             onClick={() => {
               if (!navigator.geolocation) {
-                setError('Geolocation is not available.')
+                setError('Geolocation unavailable.')
                 return
               }
               navigator.geolocation.getCurrentPosition(
                 ({ coords }) => loadWeather({ lat: coords.latitude, lon: coords.longitude }),
-                () => setError('Location access denied. Search city manually.'),
+                () => setError('Location access denied.'),
               )
             }}
-            className="glass-panel flex items-center justify-center rounded-2xl px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors"
+            className="glass-panel px-10 py-5 text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 transition-all hover:text-white"
           >
-            Use My Location
+            Current Location
           </motion.button>
         </motion.section>
 
-        <AnimatePresence>
-          {notice && !error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, scale: 0.95 }}
-              animate={{ opacity: 1, height: 'auto', scale: 1 }}
-              exit={{ opacity: 0, height: 0, scale: 0.95 }}
-              className="glass-soft relative z-10 rounded-xl border-l-4 border-blue-400 p-4 text-sm font-medium tracking-wide text-blue-100"
-            >
-              {notice}
-            </motion.div>
-          )}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, scale: 0.95 }}
-              animate={{ opacity: 1, height: 'auto', scale: 1 }}
-              exit={{ opacity: 0, height: 0, scale: 0.95 }}
-              className="glass-soft relative z-10 rounded-xl border-l-4 border-red-500 p-4 text-sm font-medium tracking-wide text-red-100"
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.section variants={containerVariants} className="relative z-10 grid gap-5 md:grid-cols-3">
+        <motion.section variants={containerVariants} className="relative z-10 grid gap-6 md:grid-cols-3">
           {(loading ? Array.from({ length: 3 }) : [
-            { label: 'Humidity', value: weather?.main?.humidity ? `${weather.main.humidity}%` : '--', delay: 0 },
-            { label: 'Condition', value: weather?.weather?.[0]?.main ?? '--', delay: 0.1 },
-            { label: 'Wind Speed', value: weather?.wind?.speed ? `${weather.wind.speed} m/s` : '--', delay: 0.2 }
+            { label: 'Humidity', value: weather?.main?.humidity ? `${weather.main.humidity}%` : '--' },
+            { label: 'Atmosphere', value: weather?.weather?.[0]?.main ?? '--' },
+            { label: 'Air Flow', value: weather?.wind?.speed ? `${weather.wind.speed} m/s` : '--' }
           ]).map((item, index) => (
             <motion.article
               key={index}
               variants={itemVariants}
-              whileHover={{ z: 20, rotateX: 6, rotateY: -6, scale: 1.05 }}
-              className="glass-panel flex min-h-[140px] flex-col justify-center p-6"
+              className="glass-panel flex flex-col justify-center p-8 text-center"
             >
               {loading ? (
-                <div className="skeleton h-full w-full rounded-xl" />
+                <div className="skeleton h-12 w-full rounded-full" />
               ) : (
                 <>
-                  <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/50">{item.label}</p>
-                  <p className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl capitalize">{item.value}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">{item.label}</p>
+                  <p className="mt-4 text-4xl font-light tracking-tighter">{item.value}</p>
                 </>
               )}
             </motion.article>
@@ -423,31 +399,27 @@ function App() {
 
         <motion.section
           variants={itemVariants}
-          whileHover={{ z: 10 }}
-          className="glass-panel relative z-10 p-6 sm:p-8"
+          className="glass-panel relative z-10 p-10 sm:p-12"
         >
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="heading-font text-2xl tracking-wider text-white/90">5-Day Outlook</h2>
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/40">Hourly Sampled</span>
+          <div className="mb-10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-3xl font-light tracking-tight text-white/90">Forecast</h2>
+            <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/20">5-Day Outlook</span>
           </div>
-          <div className="forecast-scroll flex gap-4 overflow-x-auto pb-4 pt-2">
+          <div className="forecast-scroll flex gap-6 overflow-x-auto pb-6">
             {(loading ? Array.from({ length: 5 }) : forecastCards).map((item, index) => (
               <motion.article
                 key={item?.day ?? index}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + index * 0.1, type: 'spring' }}
-                whileHover={{ y: -10, scale: 1.05, z: 20 }}
-                className="glass-soft flex min-w-[150px] flex-col items-center justify-center rounded-2xl p-5"
+                variants={itemVariants}
+                className="flex min-w-[160px] flex-col items-center justify-center border-r border-white/5 pr-6 last:border-0"
               >
                 {loading ? (
-                  <div className="skeleton h-28 w-full rounded-xl" />
+                  <div className="skeleton h-32 w-full rounded-xl" />
                 ) : (
                   <>
-                    <p className="text-sm font-semibold tracking-wider text-white/60">{item.day}</p>
-                    <p className="my-3 text-4xl drop-shadow-lg">{item.icon}</p>
-                    <p className="text-3xl font-bold">{item.temp}°</p>
-                    <p className="mt-2 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent)]">
+                    <p className="text-xs font-semibold tracking-wider text-white/40">{item.day}</p>
+                    <p className="my-6 text-5xl opacity-90">{item.icon}</p>
+                    <p className="text-4xl font-light tracking-tighter">{item.temp}°</p>
+                    <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--accent)] opacity-60">
                       {item.desc}
                     </p>
                   </>
